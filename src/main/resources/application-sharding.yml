@@ -1,0 +1,40 @@
+spring:
+  shardingsphere:
+    datasource:
+      names: test0,test1
+      test0:
+        type: com.zaxxer.hikari.HikariDataSource
+        driverClassName: com.mysql.cj.jdbc.Driver
+        jdbcUrl: "jdbc:mysql://localhost:3306/test0?useUnicode=true&characterEncoding=utf8&allowMultiQueries=true&serverTimezone=Asia/Shanghai"
+        username: root
+        password: 123456
+      test1:
+        type: com.zaxxer.hikari.HikariDataSource
+        driverClassName: com.mysql.cj.jdbc.Driver
+        jdbcUrl: "jdbc:mysql://localhost:3306/test1?useUnicode=true&characterEncoding=utf8&allowMultiQueries=true&serverTimezone=Asia/Shanghai"
+        username: root
+        password: 123456
+    sharding:
+#      默认分库策略  根据id分库
+      default-database-strategy:
+        inline:
+          sharding-column: id
+          algorithm-expression: test0
+      tables:
+        user:
+          # 表为db.table_序号
+          actualDataNodes: test$->{0..1}.user$->{0..2}
+          # 分表策略  根据id分表 4个表
+          table-strategy:
+            inline:
+              shardingColumn: id
+              algorithmExpression: user$->{id % 3}
+              # 分布式id生成方案： 雪花算法
+          keyGenerator:
+            type: SNOWFLAKE
+            column: id
+    props:
+      sql.show: true
+
+mybatis-plus:
+  mapper-locations: "classpath*:/mapper/**/*.xml"
